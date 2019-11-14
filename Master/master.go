@@ -59,7 +59,7 @@ func StartMaster(fileList []string, failed chan bool, tickerChan chan int, outpu
 		gopath = build.Default.GOPATH
 	}
 
-	println("hi, I'm the master")
+	println("Un master inizia a lavorare")
 
 	ses, err := session.NewSession(&aws.Config{
 		Region: aws.String("us-east-1")},
@@ -120,7 +120,7 @@ func StartMaster(fileList []string, failed chan bool, tickerChan chan int, outpu
 				fmt.Println(err1.Error())
 			}
 		} else {
-			fmt.Println(result)
+			fmt.Println("Si lavora su bucket ", result.Location)
 		}
 		//si consuma il primo tick del MasterController
 		if len(tickerChan) != 0 {
@@ -189,7 +189,7 @@ func StartMaster(fileList []string, failed chan bool, tickerChan chan int, outpu
 
 			}
 		}
-		fmt.Println("Letti tutti i file e mandate le richieste RPC di map ")
+		//	fmt.Println("Letti tutti i file e mandate le richieste RPC di map ")
 
 		//-------------------------------------------------------------
 		//attivazione monitoraggio master
@@ -209,7 +209,7 @@ func StartMaster(fileList []string, failed chan bool, tickerChan chan int, outpu
 					//se la condizione è verificata allora tutti i map worker hanno spedito il loro risultato che è stato scritto dai thread
 					if len(mapperResults) == numWorkers {
 						/*scrivi su bucket s3*/
-						fmt.Println("Tutti i worker hanno risposto")
+						//fmt.Println("Tutti i worker hanno risposto")
 						break wait //uscita dal select e dal for
 					}
 				} else {
@@ -308,7 +308,7 @@ func StartMaster(fileList []string, failed chan bool, tickerChan chan int, outpu
 			return
 		}
 
-		fmt.Println("file uploadato su s3")
+		//fmt.Println("file uploadato su s3")
 		//si chiude il file locale perchè "the behavior of Seek on a file opened with O_APPEND is not specified."
 		file.Close()
 
@@ -321,7 +321,7 @@ func StartMaster(fileList []string, failed chan bool, tickerChan chan int, outpu
 		//******************************
 		//simulazione crash master
 		rand.Seed(time.Now().UnixNano())
-		if rand.Intn(100) > faultProbability {
+		if rand.Intn(100) < faultProbability {
 			fmt.Println("IL master fallisce dopo aver caricato file su S3")
 			return
 		}
@@ -461,7 +461,7 @@ func StartMaster(fileList []string, failed chan bool, tickerChan chan int, outpu
 		//******************************
 		//simulazione crash master
 		rand.Seed(time.Now().UnixNano())
-		if rand.Intn(100) > faultProbability {
+		if rand.Intn(100) < faultProbability {
 			fmt.Println("IL master fallisce dopo aver caricato file shuffled su S3")
 			return
 		}
