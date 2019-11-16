@@ -34,7 +34,7 @@ const timeoutMaster = 20               // non avendo ricevuto risposta, inserire
 const chunksLines = 20                 //numero di righe del file da far elaborare ad un worker
 const timeoutWorker = 20               // non avendo ricevuto risposta, inserire qui il numero di secondi da aspettare prima di dichiarare il worker come guasto
 const faultProbability = 0             //probabilità che il master abbia un fault durante l'esecuzione (intesa come percentuale)
-const workerAddress = "localhost:1234" //inserire qui l'indirizzo del server RPC
+const workerAddress = "localhost:1234" //inserire qui l'indirizzo del server RPC (inserire 18.213.54.248:1234 per connettrsi a istanza EC2)
 const tmpFile = "tmpFile.json"         //nome file che il master creerà alla fine del map task per conservare i risultati
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
