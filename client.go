@@ -50,7 +50,7 @@ func main() {
 		println("Il canale di output è stato chiuso dal master")
 		return
 	} else {
-		fmt.Println("\nRisultati: ")
+		fmt.Println("Risultati: ")
 		for word, count := range record {
 			fmt.Printf("%s: %d \n", word, count)
 		}
