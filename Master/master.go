@@ -120,7 +120,7 @@ func StartMaster(fileList []string, failed chan bool, tickerChan chan int, outpu
 				fmt.Println(err1.Error())
 			}
 		} else {
-			fmt.Println("Si lavora su bucket ", result.Location)
+			fmt.Println("Si lavora su bucket ", *result.Location)
 		}
 		//si consuma il primo tick del MasterController
 		if len(tickerChan) != 0 {
