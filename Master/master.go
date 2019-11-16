@@ -14,6 +14,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -30,15 +31,16 @@ type Result map[string]int
 var bucketName string
 
 //---------------------------------------------
-const timeoutMaster = 20               // non avendo ricevuto risposta, inserire qui il numero di secondi da aspettare prima di dichiarare il master come guasto
-const chunksLines = 20                 //numero di righe del file da far elaborare ad un worker
-const timeoutWorker = 20               // non avendo ricevuto risposta, inserire qui il numero di secondi da aspettare prima di dichiarare il worker come guasto
-const faultProbability = 0             //probabilità che il master abbia un fault durante l'esecuzione (intesa come percentuale)
-const workerAddress = "localhost:1234" //inserire qui l'indirizzo del server RPC (inserire 18.213.54.248:1234 per connettrsi a istanza EC2)
-const tmpFile = "tmpFile.json"         //nome file che il master creerà alla fine del map task per conservare i risultati
+const timeoutMaster = 20                                        // non avendo ricevuto risposta, inserire qui il numero di secondi da aspettare prima di dichiarare il master come guasto
+const chunksLines = 10                                          //numero di righe del file da far elaborare ad un worker
+const timeoutWorker = 20                                        // non avendo ricevuto risposta, inserire qui il numero di secondi da aspettare prima di dichiarare il worker come guasto
+const faultProbability = 0                                      //probabilità che il master abbia un fault durante l'esecuzione (intesa come percentuale)
+const workerAddress = /*"18.213.54.248:1234"*/ "localhost:1234" //inserire qui l'indirizzo del server RPC
+const tmpFile = "tmpFile.json"                                  //nome file che il master creerà alla fine del map task per conservare i risultati
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 var mapperResults []*Result //array utilizzato per sapere le risposte dei Map workers
+var lock = sync.Mutex{}     //lock per permettere ai thread di scrivere il risultato senza problemi per la concorrenza
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 //---------------------------------------------
@@ -817,7 +819,9 @@ func rpcReduceRequest(occurence []int, word string, reduceResult *Result, master
 			timer.Stop()
 			//viene aggiunto il risulato del reduce worker
 			//fmt.Println(word, (*reply))
+			lock.Lock()
 			(*reduceResult)[word] = (*reply)
+			lock.Unlock()
 			return
 		} else {
 			fmt.Println("Simulazione crash di un reduce worker ")
