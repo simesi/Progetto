@@ -771,7 +771,7 @@ func rpcMapRequest(txtLines []string, masterFail chan bool) {
 	}
 }
 
-//thread implementa la chiamata RPC e fa partire un timeout, restituisce un puntatore per sapere quando la risposta è pronta e la risposta
+//thread implementa la chiamata RPC e fa partire un timeout, restituisce un puntatore per sapere quando la risposta è pronta
 func rpcReduceRequest(occurence []int, word string, reduceResult *Result, masterFail chan bool) {
 	//connect to RPC worker using HTTP protocol
 	client, err := rpc.DialHTTP("tcp", workerAddress)
