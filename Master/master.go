@@ -30,9 +30,9 @@ type Result map[string]int
 var bucketName string
 
 //---------------------------------------------
-const timeoutMaster = 5                // non avendo ricevuto risposta, inserire qui il numero di secondi da aspettare prima di dichiarare il master come guasto
+const timeoutMaster = 20               // non avendo ricevuto risposta, inserire qui il numero di secondi da aspettare prima di dichiarare il master come guasto
 const chunksLines = 20                 //numero di righe del file da far elaborare ad un worker
-const timeoutWorker = 8                // non avendo ricevuto risposta, inserire qui il numero di secondi da aspettare prima di dichiarare il worker come guasto
+const timeoutWorker = 20               // non avendo ricevuto risposta, inserire qui il numero di secondi da aspettare prima di dichiarare il worker come guasto
 const faultProbability = 0             //probabilità che il master abbia un fault durante l'esecuzione (intesa come percentuale)
 const workerAddress = "localhost:1234" //inserire qui l'indirizzo del server RPC
 const tmpFile = "tmpFile.json"         //nome file che il master creerà alla fine del map task per conservare i risultati
@@ -189,7 +189,7 @@ func StartMaster(fileList []string, failed chan bool, tickerChan chan int, outpu
 
 			}
 		}
-		//	fmt.Println("Letti tutti i file e mandate le richieste RPC di map ")
+		//fmt.Println("Letti tutti i file e mandate le richieste RPC di map ")
 
 		//-------------------------------------------------------------
 		//attivazione monitoraggio master
@@ -209,7 +209,6 @@ func StartMaster(fileList []string, failed chan bool, tickerChan chan int, outpu
 					//se la condizione è verificata allora tutti i map worker hanno spedito il loro risultato che è stato scritto dai thread
 					if len(mapperResults) == numWorkers {
 						/*scrivi su bucket s3*/
-						//fmt.Println("Tutti i worker hanno risposto")
 						break wait //uscita dal select e dal for
 					}
 				} else {
@@ -508,7 +507,11 @@ func StartMaster(fileList []string, failed chan bool, tickerChan chan int, outpu
 	//starts thread for call rcp reduce task
 	for k, _ := range arrayForReducer {
 		numWorkers++
-		rpcReduceRequest(arrayForReducer[k], k, &resultRed, failed)
+		//si consuma il tick perchè il file dei risultati dei map worker shuffled potrebbe essere grande
+		if len(tickerChan) != 0 {
+			_ = <-tickerChan
+		}
+		go rpcReduceRequest(arrayForReducer[k], k, &resultRed, failed)
 
 	}
 	//fmt.Println("Mandate le richieste Reduce RPC")
