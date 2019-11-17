@@ -31,12 +31,12 @@ type Result map[string]int
 var bucketName string
 
 //---------------------------------------------
-const timeoutMaster = 20                                        // non avendo ricevuto risposta, inserire qui il numero di secondi da aspettare prima di dichiarare il master come guasto
-const chunksLines = 10                                          //numero di righe del file da far elaborare ad un worker
-const timeoutWorker = 20                                        // non avendo ricevuto risposta, inserire qui il numero di secondi da aspettare prima di dichiarare il worker come guasto
-const faultProbability = 0                                      //probabilità che il master abbia un fault durante l'esecuzione (intesa come percentuale)
-const workerAddress = /*"18.213.54.248:1234"*/ "localhost:1234" //inserire qui l'indirizzo del server RPC
-const tmpFile = "tmpFile.json"                                  //nome file che il master creerà alla fine del map task per conservare i risultati
+const timeoutMaster = 20                   // non avendo ricevuto risposta, inserire qui il numero di secondi da aspettare prima di dichiarare il master come guasto
+const chunksLines = 10                     //numero di righe del file da far elaborare ad un worker
+const timeoutWorker = 20                   // non avendo ricevuto risposta, inserire qui il numero di secondi da aspettare prima di dichiarare il worker come guasto
+const faultProbability = 0                 //probabilità che il master abbia un fault durante l'esecuzione (intesa come percentuale)
+const workerAddress = "18.213.54.248:1234" //"localhost:1234" //inserire qui l'indirizzo del server RPC
+const tmpFile = "tmpFile.json"             //nome file che il master creerà alla fine del map task per conservare i risultati
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 var mapperResults []*Result //array utilizzato per sapere le risposte dei Map workers
@@ -168,6 +168,10 @@ func StartMaster(fileList []string, failed chan bool, tickerChan chan int, outpu
 						//reset del buffer contente le chunksLines
 						txtlines = nil
 						readedLines = 0
+
+						if len(tickerChan) != 0 {
+							_ = <-tickerChan
+						}
 					}
 				}
 				if scanner.Err(); err != nil {
@@ -723,10 +727,12 @@ func MasterController(fileList []string, failed chan bool, tickerChan chan int, 
 
 //thread implementa la chiamata RPC e fa partire un timeout, restituisce un puntatore per sapere quando la risposta è pronta e la risposta
 func rpcMapRequest(txtLines []string, masterFail chan bool) {
+dialMap:
 	//connect to RPC worker using HTTP protocol
 	client, err := rpc.DialHTTP("tcp", workerAddress)
 	if err != nil {
-		log.Fatal("Error in dialing: ", err)
+		time.Sleep(time.Second * 1)
+		goto dialMap
 	}
 
 	args := &txtLines
@@ -742,9 +748,11 @@ func rpcMapRequest(txtLines []string, masterFail chan bool) {
 	case <-timer.C:
 		fmt.Println("Timeout per chiamata RPC Map scaduto")
 		timer.Stop()
+	dialMapAfterTimeout:
 		client, err := rpc.DialHTTP("tcp", workerAddress)
 		if err != nil {
-			log.Fatal("Error in dialing: ", err)
+			time.Sleep(time.Second * 1)
+			goto dialMapAfterTimeout
 		}
 		//nuova RPC call
 		divCall = client.Go("Worker.Map", args, reply, nil)
@@ -775,10 +783,12 @@ func rpcMapRequest(txtLines []string, masterFail chan bool) {
 
 //thread implementa la chiamata RPC e fa partire un timeout, restituisce un puntatore per sapere quando la risposta è pronta
 func rpcReduceRequest(occurence []int, word string, reduceResult *Result, masterFail chan bool) {
+dial:
 	//connect to RPC worker using HTTP protocol
 	client, err := rpc.DialHTTP("tcp", workerAddress)
 	if err != nil {
-		log.Fatal("Error in dialing: ", err)
+		time.Sleep(time.Second * 1)
+		goto dial
 	}
 
 	args := &occurence
@@ -799,9 +809,11 @@ func rpcReduceRequest(occurence []int, word string, reduceResult *Result, master
 	case <-timer.C:
 		fmt.Println("Timeout Reduce work scaduto")
 		timer.Stop()
+	dialAfterTimeout:
 		client, err := rpc.DialHTTP("tcp", workerAddress)
 		if err != nil {
-			log.Fatal("Error in dialing: ", err)
+			time.Sleep(time.Second * 1)
+			goto dialAfterTimeout
 		}
 		//nuova RPC call
 		divCall = client.Go("Worker.Reduce", args, reply, nil)
