@@ -758,12 +758,6 @@ func rpcMapRequest(txtLines []string, masterFail chan bool) {
 	case <-timer.C:
 		fmt.Println("Timeout per chiamata RPC Map scaduto")
 		timer.Stop()
-	dialMapAfterTimeout:
-		client, err := rpc.DialHTTP("tcp", workerAddress)
-		if err != nil {
-			time.Sleep(time.Second * 1)
-			goto dialMapAfterTimeout
-		}
 		//nuova RPC call
 		divCall = client.Go("Worker.Map", args, reply, nil)
 		timer = time.NewTimer(time.Second * timeoutWorker)
@@ -819,12 +813,6 @@ func rpcReduceRequest(occurence []int, word string, reduceResult *Result, master
 	case <-timer.C:
 		fmt.Println("Timeout Reduce work scaduto")
 		timer.Stop()
-	dialAfterTimeout:
-		client, err := rpc.DialHTTP("tcp", workerAddress)
-		if err != nil {
-			time.Sleep(time.Second * 1)
-			goto dialAfterTimeout
-		}
 		//nuova RPC call
 		divCall = client.Go("Worker.Reduce", args, reply, nil)
 		timer = time.NewTimer(time.Second * timeoutWorker)
