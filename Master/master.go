@@ -41,6 +41,8 @@ const tmpFile = "tmpFile.json"             //nome file che il master creerà all
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 var mapperResults []*Result //array utilizzato per sapere le risposte dei Map workers
 var lock = sync.Mutex{}     //lock per permettere ai thread di scrivere il risultato senza problemi per la concorrenza
+var client *rpc.Client      //connessione con il woker
+
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 //---------------------------------------------
@@ -72,7 +74,7 @@ func StartMaster(fileList []string, failed chan bool, tickerChan chan int, outpu
 	}
 
 	svcs3 := s3.New(ses)
-
+	client, _ = rpc.DialHTTP("tcp", workerAddress)
 	if step == 0 {
 		//si alloca un array di 100 stringhe come il numero di bucket che è possibile creare
 		var bucketList [100]string
@@ -155,6 +157,11 @@ func StartMaster(fileList []string, failed chan bool, tickerChan chan int, outpu
 				if erro != nil {
 					log.Fatal(erro)
 				}
+
+				if len(tickerChan) != 0 {
+					_ = <-tickerChan
+				}
+
 				for scanner.Scan() {
 					readedLines++
 					//si legge linea di testo e le si tolgono i caratteri speciali e i numeri
@@ -191,6 +198,9 @@ func StartMaster(fileList []string, failed chan bool, tickerChan chan int, outpu
 				//fmt.Println("Chiamata RPC con input troncato:", txtlines)
 				txtlines = nil
 				readedLines = 0
+				if len(tickerChan) != 0 {
+					_ = <-tickerChan
+				}
 				break
 
 			}
@@ -727,13 +737,13 @@ func MasterController(fileList []string, failed chan bool, tickerChan chan int, 
 
 //thread implementa la chiamata RPC e fa partire un timeout, restituisce un puntatore per sapere quando la risposta è pronta e la risposta
 func rpcMapRequest(txtLines []string, masterFail chan bool) {
-dialMap:
+	/*dialMap:
 	//connect to RPC worker using HTTP protocol
 	client, err := rpc.DialHTTP("tcp", workerAddress)
 	if err != nil {
 		time.Sleep(time.Second * 1)
 		goto dialMap
-	}
+	}*/
 
 	args := &txtLines
 	// reply will store the RPC result
@@ -783,13 +793,13 @@ dialMap:
 
 //thread implementa la chiamata RPC e fa partire un timeout, restituisce un puntatore per sapere quando la risposta è pronta
 func rpcReduceRequest(occurence []int, word string, reduceResult *Result, masterFail chan bool) {
-dial:
+	/*dial:
 	//connect to RPC worker using HTTP protocol
 	client, err := rpc.DialHTTP("tcp", workerAddress)
 	if err != nil {
 		time.Sleep(time.Second * 1)
 		goto dial
-	}
+	}*/
 
 	args := &occurence
 	// reply will store the RPC result
