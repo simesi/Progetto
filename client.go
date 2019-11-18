@@ -32,7 +32,7 @@ func main() {
 		//println(file.Name())
 	}
 
-	//creaimo un canale tra master e function handler che verrà scritto dalla funzione handler dell'heartbeating in caso di timeout
+	//creiamo un canale tra Master, masterController e i futuri threads dedicati alla ricezione dei risulati dei workers.Il canale verrà scritto dal masterController in caso di timeout
 	failed := make(chan bool)
 	//inizializziamo canale per l'output che ci invierà il master alla fine del worcount
 	chanOutput := make(chan Master.Result)
