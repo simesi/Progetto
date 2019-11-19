@@ -240,7 +240,7 @@ func StartMaster(fileList []string, failed chan bool, tickerChan chan int, outpu
 		}
 
 		// check if file exists
-		var _, errPath = os.Stat(gopath + "/" + tmpFile)
+		/*var _, errPath = os.Stat(gopath + "/" + tmpFile)
 		// create file if not exists or truncate
 		if os.IsNotExist(errPath) {
 			file, err = os.Create(gopath + "/" + tmpFile)
@@ -249,7 +249,7 @@ func StartMaster(fileList []string, failed chan bool, tickerChan chan int, outpu
 				os.Exit(-1)
 			}
 		}
-		file.Close()
+		file.Close()*/
 
 		//si apre il file in mdoalità APPEND
 		file, err = os.OpenFile(gopath+"/"+tmpFile,
