@@ -74,7 +74,11 @@ func StartMaster(fileList []string, failed chan bool, tickerChan chan int, outpu
 	}
 
 	svcs3 := s3.New(ses)
-	client, _ = rpc.DialHTTP("tcp", workerAddress)
+	//si instaura una connessione con il server RPC worker
+	client, err = rpc.DialHTTP("tcp", workerAddress){
+	if err != nil {
+		log.Fatal(err)
+	}
 	if step == 0 {
 		//si alloca un array di 100 stringhe come il numero di bucket che è possibile creare
 		var bucketList [100]string
