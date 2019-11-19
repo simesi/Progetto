@@ -145,7 +145,7 @@ func StartMaster(fileList []string, failed chan bool, tickerChan chan int, outpu
 			if len(tickerChan) != 0 {
 				_ = <-tickerChan
 			}
-			file, err := os.Open(fileName)
+			file, err = os.Open(fileName)
 			if err != nil {
 				fmt.Println(err)
 				os.Exit(-1)
