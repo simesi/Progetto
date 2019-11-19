@@ -33,6 +33,7 @@ const timeoutMaster = 20                   // non avendo ricevuto risposta, inse
 const chunksLines = 10                     //numero di righe del file da far elaborare ad un worker
 const timeoutWorker = 20                   // non avendo ricevuto risposta, inserire qui il numero di secondi da aspettare prima di dichiarare il worker come guasto
 const faultProbability = 0                 //probabilità che il master abbia un fault durante l'esecuzione (intesa come percentuale)
+const faultProbabilityWorker = 0           //probabilità che un worker abbia un fault durante l'esecuzione (intesa come percentuale)
 const workerAddress = "18.213.54.248:1234" //"localhost:1234" //inserire qui l'indirizzo del server RPC
 const tmpFile = "tmpFile.json"             //nome file che il master creerà alla fine del map task per conservare i risultati
 
@@ -772,7 +773,7 @@ func rpcMapRequest(txtLines []string, masterFail chan bool) {
 		}
 		rand.Seed(time.Now().UnixNano())
 		//se la condizione non è verificata si simula crash del map worker (quindi non si processa la risposta pervenuta)
-		if rand.Intn(100) >= faultProbability {
+		if rand.Intn(100) >= faultProbabilityWorker {
 			//spegnimento del timer di timeout
 			timer.Stop()
 			//viene aggiunto il risulato del map worker
@@ -827,7 +828,7 @@ func rpcReduceRequest(occurence []int, word string, reduceResult *Result, master
 		}
 		rand.Seed(time.Now().UnixNano())
 		//se la condizione non è verificata si simula crash del reduce worker (quindi non si processa la risposta pervenuta)
-		if rand.Intn(100) >= faultProbability {
+		if rand.Intn(100) >= faultProbabilityWorker {
 			//spegnimento del timer di timeout
 			timer.Stop()
 			//viene aggiunto il risulato del reduce worker
