@@ -24,13 +24,11 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
-//Result of RPC call
+//tipo di dato della risposta che si aspetta il client
 type Result map[string]int
 
-//chosen at runtime
-var bucketName string
-
 //---------------------------------------------
+//PARAMETRI CONFIGURABILI
 const timeoutMaster = 20                   // non avendo ricevuto risposta, inserire qui il numero di secondi da aspettare prima di dichiarare il master come guasto
 const chunksLines = 10                     //numero di righe del file da far elaborare ad un worker
 const timeoutWorker = 20                   // non avendo ricevuto risposta, inserire qui il numero di secondi da aspettare prima di dichiarare il worker come guasto
@@ -39,10 +37,11 @@ const workerAddress = "18.213.54.248:1234" //"localhost:1234" //inserire qui l'i
 const tmpFile = "tmpFile.json"             //nome file che il master creerà alla fine del map task per conservare i risultati
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+//VARIABILI GLOBALI UTILIZZATE DAL PROGRAMMA 
 var mapperResults []*Result //array utilizzato per sapere le risposte dei Map workers
 var lock = sync.Mutex{}     //lock per permettere ai thread di scrivere il risultato senza problemi per la concorrenza
 var client *rpc.Client      //connessione con il woker
-
+var bucketName string       //nome del bucket scelto a run time
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 //---------------------------------------------
